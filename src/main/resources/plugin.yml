@@ -1,0 +1,12 @@
+name: WordScrambler
+version: '1.0.07-2024'
+main: fr.pixeleur.wordscrambler.WordScrambler
+api-version: '1.20'
+description: Fully customisable word scrambling game plugin where players unscramble words to win custom rewards.
+authors: [Pixeleur]
+website: https://pixeleur.fr
+commands:
+  WordRewardRegister:
+    description: Registers the item in your hand as the reward item.
+    usage: /WordRewardRegister
+    permission: wordscrambler.admin
