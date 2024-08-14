@@ -1,4 +1,4 @@
-package fr.pixeleur.wordscrambler.commands;
+package fr.pixeleur.wordscramblers.commands;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -8,14 +8,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 
 public class WordRewardRegister implements CommandExecutor {
@@ -33,7 +29,7 @@ public class WordRewardRegister implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        if (!player.hasPermission("wordscrambler.admin")) {
+        if (!player.hasPermission("wordscramblers.admin")) {
             player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
             return true;
         }

@@ -1,4 +1,4 @@
-package fr.pixeleur.wordscrambler.procedures;
+package fr.pixeleur.wordscramblers.procedures;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,15 +11,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class ScramblerEvent implements Listener {
 
@@ -54,7 +49,7 @@ public class ScramblerEvent implements Listener {
         this.eventEndNobody = plugin.getConfig().getString("event_end_nobody");
 
         // Load and reconstruct the reward item
-        Material material = Material.getMaterial(plugin.getConfig().getString("event_reward_material"));
+        Material material = Material.getMaterial(Objects.requireNonNull(plugin.getConfig().getString("event_reward_material")));
         int amount = plugin.getConfig().getInt("event_reward_amount");
 
         if (material != null) {
