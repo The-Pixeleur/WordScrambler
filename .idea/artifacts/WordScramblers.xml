@@ -3,8 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/WordScramblers</output-path>
     <root id="archive" name="WordScramblers.jar">
       <element id="file-copy" path="$PROJECT_DIR$/src/main/resources/plugin.yml" />
-      <element id="module-output" name="WordScrambler.main" />
-      <element id="file-copy" path="$PROJECT_DIR$/src/main/resources/config.yml" />
+      <element id="module-output" name="fr.pixeleur.WordScrambler.main" />
     </root>
   </artifact>
 </component>

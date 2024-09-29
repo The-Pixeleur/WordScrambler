@@ -13,7 +13,6 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.io.ByteArrayOutputStream;
 
-
 public class WordRewardRegister implements CommandExecutor {
     private final JavaPlugin plugin;
 

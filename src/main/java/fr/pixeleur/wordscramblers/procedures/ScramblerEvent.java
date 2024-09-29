@@ -39,21 +39,23 @@ public class ScramblerEvent implements Listener {
         this.plugin = plugin;
 
         // Load configuration values
-        this.eventPrefix = ChatColor.RED + plugin.getConfig().getString("event_prefix");
-        this.timeForAnswering = plugin.getConfig().getInt("time_for_answering") * 60; // Convert minutes to seconds
-        int timeBetweenEachEvent = plugin.getConfig().getInt("time_between_each_event") * 60; // Convert minutes to seconds
-        this.caseSensitive = plugin.getConfig().getBoolean("case_sensitive");
+        this.eventPrefix = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("event_prefix", "none"));
+        this.timeForAnswering = plugin.getConfig().getInt("time_for_answering", 2) * 60; // Convert minutes to seconds
+        int timeBetweenEachEvent = plugin.getConfig().getInt("time_between_each_event", 15) * 60; // Convert minutes to seconds
+        this.caseSensitive = plugin.getConfig().getBoolean("case_sensitive", false);
         this.words = plugin.getConfig().getStringList("Words");
-        this.eventStartMessage = plugin.getConfig().getString("event_start_message");
-        this.eventEndWin = plugin.getConfig().getString("event_end_win");
-        this.eventEndNobody = plugin.getConfig().getString("event_end_nobody");
+
+        // Apply the translation for the event messages
+        this.eventStartMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("event_start_message", "none"));
+        this.eventEndWin = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("event_end_win", "none"));
+        this.eventEndNobody = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("event_end_nobody", "none"));
 
         // Load and reconstruct the reward item
-        Material material = Material.getMaterial(Objects.requireNonNull(plugin.getConfig().getString("event_reward_material")));
-        int amount = plugin.getConfig().getInt("event_reward_amount");
+        Material material = Material.getMaterial(plugin.getConfig().getString("event_reward_material", "IRON_INGOT"));
+        this.eventRewardsCount = plugin.getConfig().getInt("event_rewards_count", 2);
 
         if (material != null) {
-            this.eventReward = new ItemStack(material, amount);
+            this.eventReward = new ItemStack(material, 1);
 
             // Load NBT data from the config
             try {
@@ -75,8 +77,6 @@ public class ScramblerEvent implements Listener {
             this.eventReward = new ItemStack(Material.AIR); // Fallback to AIR if material is invalid
         }
 
-        this.eventRewardsCount = plugin.getConfig().getInt("event_rewards_count");
-
         // Register event listener
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
@@ -95,10 +95,14 @@ public class ScramblerEvent implements Listener {
         scrambledWord = scrambleWord(currentWord);
         wordGuessed = false;
 
+        // Fetch color codes from config
+        String scrambledWordColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("scrambled_word_color", ""));
+        String defaultColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("default_color", ""));
+
         // Announce the scrambled word
-        Bukkit.broadcastMessage(eventPrefix + ChatColor.YELLOW + eventStartMessage
-                .replace("%scrambledword%", ChatColor.GREEN + scrambledWord + ChatColor.YELLOW)
-                .replace("%unscrambledword%", ChatColor.GREEN + currentWord + ChatColor.YELLOW));
+        Bukkit.broadcastMessage(eventPrefix + defaultColor + eventStartMessage
+                .replace("%scrambledword%", scrambledWordColor + scrambledWord + defaultColor)
+                .replace("%unscrambledword%", scrambledWordColor + currentWord + defaultColor));
 
         // Start the timer for answering
         startTime = System.currentTimeMillis();
@@ -109,9 +113,9 @@ public class ScramblerEvent implements Listener {
                 // If time is up and no one has guessed the word
                 if (!wordGuessed && (System.currentTimeMillis() - startTime) >= timeForAnswering * 1000L) {
                     assert eventEndNobody != null;
-                    Bukkit.broadcastMessage(eventPrefix + ChatColor.YELLOW + eventEndNobody
-                            .replace("%scrambledword%", ChatColor.GREEN + scrambledWord + ChatColor.YELLOW)
-                            .replace("%unscrambledword%", ChatColor.GREEN + currentWord + ChatColor.YELLOW));
+                    Bukkit.broadcastMessage(eventPrefix + defaultColor + eventEndNobody
+                            .replace("%scrambledword%", scrambledWordColor + scrambledWord + defaultColor)
+                            .replace("%unscrambledword%", scrambledWordColor + currentWord + defaultColor));
 
                     cancel();
                 }
@@ -151,11 +155,17 @@ public class ScramblerEvent implements Listener {
         long minutes = (timeTaken / 1000) / 60;
         long seconds = (timeTaken / 1000) % 60;
         String timeString = String.format("%02d:%02d", minutes, seconds);
-        Bukkit.broadcastMessage(eventPrefix + ChatColor.YELLOW + eventEndWin
-                .replace("%player%", ChatColor.GREEN + player.getName() + ChatColor.YELLOW)
-                .replace("%time%", ChatColor.GREEN + timeString + ChatColor.YELLOW)
-                .replace("%scrambledword%", ChatColor.GREEN + scrambledWord + ChatColor.YELLOW)
-                .replace("%unscrambledword%", ChatColor.GREEN + currentWord + ChatColor.YELLOW));
+
+        // Fetch color codes from config
+        String playerColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("player_color", "&a&l"));
+        String timeColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("time_color", "&a&l"));
+        String defaultColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("default_color", "&a&l"));
+
+        Bukkit.broadcastMessage(eventPrefix + defaultColor + eventEndWin
+                .replace("%player%", playerColor + player.getName() + defaultColor)
+                .replace("%time%", timeColor + timeString + defaultColor)
+                .replace("%scrambledword%", playerColor + scrambledWord + defaultColor)
+                .replace("%unscrambledword%", playerColor + currentWord + defaultColor));
 
         // Create a new ItemStack with the NBT data
         ItemStack rewardItem = eventReward.clone();

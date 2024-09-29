@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/WordScrambler.main.iml" filepath="$PROJECT_DIR$/.idea/modules/WordScrambler.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fr.pixeleur.WordScrambler.main.iml" filepath="$PROJECT_DIR$/.idea/modules/fr.pixeleur.WordScrambler.main.iml" />
     </modules>
   </component>
 </project>
