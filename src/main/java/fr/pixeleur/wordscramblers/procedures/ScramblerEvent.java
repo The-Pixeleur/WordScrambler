@@ -32,7 +32,7 @@ public class ScramblerEvent implements Listener {
     private String currentWord;
     private String scrambledWord;
     private long startTime;
-    private boolean wordGuessed;
+    private boolean isEventActive;
     private BukkitRunnable endTimer;
 
     public ScramblerEvent(JavaPlugin plugin) {
@@ -77,6 +77,9 @@ public class ScramblerEvent implements Listener {
             this.eventReward = new ItemStack(Material.AIR); // Fallback to AIR if material is invalid
         }
 
+        // Initialize isEventActive
+        this.isEventActive = false;
+
         // Register event listener
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
@@ -90,10 +93,14 @@ public class ScramblerEvent implements Listener {
     }
 
     private void startScramblerEvent() {
+        if (isEventActive) {
+            return; // Don't start a new event if one is already active
+        }
+
         Random random = new Random();
         currentWord = words.get(random.nextInt(words.size()));
         scrambledWord = scrambleWord(currentWord);
-        wordGuessed = false;
+        isEventActive = true;
 
         // Fetch color codes from config
         String scrambledWordColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("scrambled_word_color", ""));
@@ -111,13 +118,8 @@ public class ScramblerEvent implements Listener {
             @Override
             public void run() {
                 // If time is up and no one has guessed the word
-                if (!wordGuessed && (System.currentTimeMillis() - startTime) >= timeForAnswering * 1000L) {
-                    assert eventEndNobody != null;
-                    Bukkit.broadcastMessage(eventPrefix + defaultColor + eventEndNobody
-                            .replace("%scrambledword%", scrambledWordColor + scrambledWord + defaultColor)
-                            .replace("%unscrambledword%", scrambledWordColor + currentWord + defaultColor));
-
-                    cancel();
+                if (isEventActive && (System.currentTimeMillis() - startTime) >= timeForAnswering * 1000L) {
+                    endEvent(null, 0);
                 }
             }
         };
@@ -139,15 +141,38 @@ public class ScramblerEvent implements Listener {
 
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
+        if (!isEventActive) {
+            return; // Ignore chat messages if no event is active
+        }
+
         String message = caseSensitive ? event.getMessage() : event.getMessage().toLowerCase();
         String wordToCheck = caseSensitive ? currentWord : currentWord.toLowerCase();
 
         if (message.contains(wordToCheck)) {
             long timeTaken = System.currentTimeMillis() - startTime;
-            wordGuessed = true;
-            endTimer.cancel(); // Cancel the end timer
-            playerFoundWord(event.getPlayer(), timeTaken);
             event.setCancelled(true); // Cancel the event to prevent further processing
+            Bukkit.getScheduler().runTask(plugin, () -> endEvent(event.getPlayer(), timeTaken));
+        }
+    }
+
+    private void endEvent(Player winner, long timeTaken) {
+        if (!isEventActive) {
+            return; // Prevent multiple calls to endEvent
+        }
+
+        isEventActive = false;
+        endTimer.cancel(); // Cancel the end timer
+
+        if (winner != null) {
+            playerFoundWord(winner, timeTaken);
+        } else {
+            // Fetch color codes from config
+            String scrambledWordColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("scrambled_word_color", ""));
+            String defaultColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("default_color", ""));
+
+            Bukkit.broadcastMessage(eventPrefix + defaultColor + eventEndNobody
+                    .replace("%scrambledword%", scrambledWordColor + scrambledWord + defaultColor)
+                    .replace("%unscrambledword%", scrambledWordColor + currentWord + defaultColor));
         }
     }
 
@@ -172,6 +197,6 @@ public class ScramblerEvent implements Listener {
         rewardItem.setAmount(eventRewardsCount);
 
         // Give reward to the player
-        Bukkit.getScheduler().runTask(plugin, () -> player.getInventory().addItem(rewardItem));
+        player.getInventory().addItem(rewardItem);
     }
 }
