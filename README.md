@@ -40,52 +40,91 @@ You can customize the following settings in the `config.yml` file:
 ## Example Configuration
 
 ```yaml
-# ####################################################################################
+# ###################################################################################
 #  __          __           _    _____                          _     _             #
 #  \ \        / /          | |  / ____|                        | |   | |            #
 #   \ \  /\  / /__  _ __ __| | | (___   ___ _ __ __ _ _ __ ___ | |__ | | ___ _ __   #
 #    \ \/  \/ / _ \| '__/ _` |  \___ \ / __| '__/ _` | '_ ` _ \| '_ \| |/ _ \ '__|  #
 #     \  /\  / (_) | | | (_| |  ____) | (__| | | (_| | | | | | | |_) | |  __/ |     #
 #      \/  \/ \___/|_|  \__,_| |_____/ \___|_|  \__,_|_| |_| |_|_.__/|_|\___|_|     #
-# ####################################################################################
-# Made by Pixeleur game studio - 2024
-# Discord server support link : https://discord.com/invite/2pssCZR
-# tutorial link : PUT SPIGOT LINK HERE
+# ###################################################################################
+# Word Scrambler Plugin Configuration                                               #
+# Developed by Pixeleur Game Studio - 2025                                          #
+# Support: https://discord.com/invite/2pssCZR                                       #
+# Tutorial: https://www.spigotmc.org/resources/word-scrambler-reward-game.118505/   #
+# ###################################################################################
 
-# The plugin prefix
-event_prefix: '[Word Scrambler]'
+# ========================
+#  Basic Settings
+# ========================
+# Plugin prefix used in chat messages
+event_prefix: '&c[WORD SCRAMBLERS] '
 
-# Event message
-event_start_message: ' First to find the word ''%scrambledword%'' will win the game.'
-event_end_win: ' user %player% found the word in %time%!'
-event_end_nobody: ' Nobody found the word. It was ''%unscrambledword%'''
+# ========================
+#  Event Configuration
+# ========================
+# Time settings (in minutes)
+time_for_answering: 2        # Duration players have to solve the puzzle
+time_between_each_event: 15  # Cooldown between consecutive games
 
-# Time allowed for answering the scrambled word (in minutes)
-time_for_answering: 2
+# Case sensitivity settings
+case_sensitive: false        # true = Exact case match required
+                             # false = "TEST", "Test", and "test" all accepted
+                             # (For word "Test": 'test' & 'tESt' would work when false)
 
-# Time between each scrambler event (in minutes)
-time_between_each_event: 15
+# ========================
+#  Game Messages
+# ========================
+event_start_message: '&eFirst to find the word ''&a%scrambledword%''&e, will win the game.'
+event_end_win: '&a%player%&e found the word &2%unscrambledword%&e in &a%time%&e!'
+event_end_nobody: '&eNobody found the word. It was: ''&a%unscrambledword%&e'''
 
-# Is it case sensitive (Should uppercase be required or not)
-case_sensitive: false # False = for word "Test" : 'test' & 'Test' & 'tESt' will work for example
-                      # True = for word "Test" : 'test' & 'tESt' will not work. Only 'Test' will work
+# ========================
+#  Sound Effects
+# ========================
+# Valid sound names: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
+# Set to 'NONE' to disable any sound
+win_sound: ENTITY_FIREWORK_ROCKET_LARGE_BLAST       # Played to winner
+event_start_sound: ENTITY_FIREWORK_ROCKET_LAUNCH    # Game start sound
+event_end_win_sound: ENTITY_FIREWORK_ROCKET_TWINKLE # Win celebration
+event_end_nobody_sound: BLOCK_NOTE_BLOCK_BASS       # Played when nobody wins
 
-# The reward item and how many of this item should be given
-event_rewards_count: 5
+# ========================
+#  Victory Title Settings
+# ========================
+# Title display timings are in ticks (20 ticks = 1 second)
+win_title_main: '&6&lVICTORY!'         # Main title text
+win_title_sub: '&b%unscrambledword% &ffound in &e%time%'  # Subtitle text
+win_title_fade_in: 15    # Fade-in duration (0.75 seconds)
+win_title_stay: 60       # Display duration (3 seconds)
+win_title_fade_out: 20   # Fade-out duration (1 second)
 
-event_reward_material: IRON_INGOT
+# ========================
+#  Reward Configuration
+# ========================
+event_rewards_count: 5          # Number of items to give as reward
+event_reward_material: IRON_INGOT  # Material type for reward
+
+# NBT data for custom items (Base64 encoded serialized ItemStack)
+# WARNING: Modify only if you understand Bukkit NBT encoding!
+# NOTE: this is auto generated when using the /wordrewardregister
 event_reward_nbt: "rO0ABXNyABpvcmcuYnVra2l0LnV0aWwuaW8uV3JhcHBlcvJQR+zxEm8FAgABTAADbWFwdAAPTGph\r\
-  \nYmEvdXRpbC9NYXA7eHBzcgA1Y29tLmdvb2dsZS5jb21tb24uY29sbGVjdC5JbW11dGFibGVNYXAk\r\
+  \ndmEvdXRpbC9NYXA7eHBzcgA1Y29tLmdvb2dsZS5jb21tb24uY29sbGVjdC5JbW11dGFibGVNYXAk\r\
   \nU2VyaWFsaXplZEZvcm0AAAAAAAAAAAIAAkwABGtleXN0ABJMamF2YS9sYW5nL09iamVjdDtMAAZ2\r\
-  \nYWx1ZXNxAH4ABHhwdXIAE1tMamF2YS5sYW5nLk9iamVjdDuQzlifEHMpbAIAAHhwAAAABHQAAj09\r\
-  \ndAABdnQABHR5cGV0AAZhbW91bnR1cQB+AAYAAAAEdAAeb3JnLmJ1a2tpdC5pbnZlbnRvcnkuSXRl\r\
-  \nbVN0YWNrc3IAEWphdmEubGFuZy5JbnRlZ2VyEuKgpPeBhzgCAAFJAAV2YWx1ZXhyABBqYXZhLmxh\r\
-  \nbmcuTnVtYmVyhqyVHQuU4IsCAAB4cAAADv90AApJUk9OX0lOR09Uc3EAfgAOAAAABQ==\r\n"
+  \nYWx1ZXNxAH4ABHhwdXIAE1tMamF2YS5sYW5nLk9iamVjdDuQzlifEHMpbAIAAHhwAAAAA3QAAj09\r\
+  \ndAABdnQABHR5cGV1cQB+AAYAAAADdAAeb3JnLmJ1a2tpdC5pbnZlbnRvcnkuSXRlbVN0YWNrc3IA\r\
+  \nEWphdmEubGFuZy5JbnRlZ2VyEuKgpPeBhzgCAAFJAAV2YWx1ZXhyABBqYXZhLmxhbmcuTnVtYmVy\r\
+  \nhqyVHQuU4IsCAAB4cAAADv90AApJUk9OX0lOR09U\r\n"
 
-# List of words for the scrambling game
+# ========================
+#  Word Bank
+# ========================
+# Add/remove words below (avoid special characters)
+# TIP: Keep words between 4-15 characters for best gameplay
 Words:
-- Pixeleur
-- Minecraft
-- Java
-- Spigot
-- Pneumonoultramicroscopicsilicovolcanoconiosis
+  - Pixeleur
+  - Minecraft
+  - Java
+  - Spigot
+  # Fun example of long word (45 letters)
+  - Pneumonoultramicroscopicsilicovolcanoconiosis
