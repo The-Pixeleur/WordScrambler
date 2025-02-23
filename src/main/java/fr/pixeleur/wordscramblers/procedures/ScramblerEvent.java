@@ -3,6 +3,7 @@ package fr.pixeleur.wordscramblers.procedures;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,6 +36,18 @@ public class ScramblerEvent implements Listener {
     private boolean isEventActive;
     private BukkitRunnable endTimer;
 
+    private final String winSound;
+    private final String eventStartSound;
+    private final String eventEndWinSound;
+    private final String eventEndNobodySound;
+
+    private final String winTitleMain;
+    private final String winTitleSub;
+    private final int winTitleFadeIn;
+    private final int winTitleStay;
+    private final int winTitleFadeOut;
+
+
     public ScramblerEvent(JavaPlugin plugin) {
         this.plugin = plugin;
 
@@ -49,6 +62,19 @@ public class ScramblerEvent implements Listener {
         this.eventStartMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("event_start_message", "none"));
         this.eventEndWin = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("event_end_win", "none"));
         this.eventEndNobody = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("event_end_nobody", "none"));
+
+        // Ajoutez ce code dans le constructeur après le chargement des autres valeurs
+        this.winSound = plugin.getConfig().getString("win_sound", "ENTITY_PLAYER_LEVELUP");
+        // Inside the constructor after loading other configs
+        this.eventStartSound = plugin.getConfig().getString("event_start_sound", "ENTITY_PLAYER_LEVELUP");
+        this.eventEndWinSound = plugin.getConfig().getString("event_end_win_sound", "ENTITY_PLAYER_LEVELUP");
+        this.eventEndNobodySound = plugin.getConfig().getString("event_end_nobody_sound", "ENTITY_PLAYER_LEVELUP");
+
+        this.winTitleMain = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("win_title_main", "&aCongratulations!"));
+        this.winTitleSub = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("win_title_sub", "&eYou won!"));
+        this.winTitleFadeIn = plugin.getConfig().getInt("win_title_fade_in", 10);
+        this.winTitleStay = plugin.getConfig().getInt("win_title_stay", 70);
+        this.winTitleFadeOut = plugin.getConfig().getInt("win_title_fade_out", 20);
 
         // Load and reconstruct the reward item
         Material material = Material.getMaterial(plugin.getConfig().getString("event_reward_material", "IRON_INGOT"));
@@ -110,6 +136,8 @@ public class ScramblerEvent implements Listener {
         Bukkit.broadcastMessage(eventPrefix + defaultColor + eventStartMessage
                 .replace("%scrambledword%", scrambledWordColor + scrambledWord + defaultColor)
                 .replace("%unscrambledword%", scrambledWordColor + currentWord + defaultColor));
+        // play the sound effect
+        playSoundForAll(eventStartSound);
 
         // Start the timer for answering
         startTime = System.currentTimeMillis();
@@ -165,10 +193,13 @@ public class ScramblerEvent implements Listener {
 
         if (winner != null) {
             playerFoundWord(winner, timeTaken);
+            playSoundForAll(eventEndWinSound);
         } else {
             // Fetch color codes from config
             String scrambledWordColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("scrambled_word_color", ""));
             String defaultColor = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("default_color", ""));
+
+            playSoundForAll(eventEndNobodySound);
 
             Bukkit.broadcastMessage(eventPrefix + defaultColor + eventEndNobody
                     .replace("%scrambledword%", scrambledWordColor + scrambledWord + defaultColor)
@@ -192,6 +223,35 @@ public class ScramblerEvent implements Listener {
                 .replace("%scrambledword%", playerColor + scrambledWord + defaultColor)
                 .replace("%unscrambledword%", playerColor + currentWord + defaultColor));
 
+        // Créez et envoyez le titre
+        String titleMain = winTitleMain
+                .replace("%player%", player.getName())
+                .replace("%time%", timeString)
+                .replace("%unscrambledword%", currentWord);
+
+        String titleSub = winTitleSub
+                .replace("%player%", player.getName())
+                .replace("%time%", timeString)
+                .replace("%unscrambledword%", currentWord);
+
+        player.sendTitle(
+                titleMain,
+                titleSub,
+                winTitleFadeIn,
+                winTitleStay,
+                winTitleFadeOut
+        );
+
+        // Jouer le son
+        try {
+            Sound sound = Sound.valueOf(winSound);
+            player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Invalid sound configured: " + winSound);
+            // Son par défaut si le son configuré est invalide
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+        }
+
         // Create a new ItemStack with the NBT data
         ItemStack rewardItem = eventReward.clone();
         rewardItem.setAmount(eventRewardsCount);
@@ -199,4 +259,21 @@ public class ScramblerEvent implements Listener {
         // Give reward to the player
         player.getInventory().addItem(rewardItem);
     }
+
+
+    private void playSoundForAll(String soundName) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            Sound sound;
+            try {
+                sound = Sound.valueOf(soundName);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Invalid sound configured: " + soundName);
+                sound = Sound.ENTITY_PLAYER_LEVELUP; // Default sound
+            }
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+            }
+        });
+    }
+
 }

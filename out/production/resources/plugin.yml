@@ -1,5 +1,5 @@
 name: WordScramblers
-version: '1.2.07-2024'
+version: '1.2.08-2025'
 main: fr.pixeleur.wordscramblers.WordScramblers
 api-version: '1.20'
 description: Fully customisable word scrambling game plugin where players unscramble words to win custom rewards.
